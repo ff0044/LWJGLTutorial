@@ -22,7 +22,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Build on Windows
-        run: ./gradlew build --no-build-scan
+        run: ./gradlew build
 
       - name: Upload build artifact from Windows
         uses: actions/upload-artifact@v3
@@ -50,7 +50,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build on Linux
-        run: ./gradlew build --no-build-scan
+        run: ./gradlew build
 
       - name: Upload build artifact from Linux
         uses: actions/upload-artifact@v3
