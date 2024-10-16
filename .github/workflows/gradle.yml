@@ -1,0 +1,56 @@
+name: Build and Upload Artifacts
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Build on Windows
+        run: ./gradlew build --scan
+
+      - name: Upload build artifact from Windows
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifact-windows
+          path: build/libs
+
+  build-linux:
+    needs: build-windows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Build on Linux
+        run: ./gradlew build --scan
+
+      - name: Upload build artifact from Linux
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifact-linux
+          path: build/libs
