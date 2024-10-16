@@ -22,7 +22,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Build on Windows
-        run: ./gradlew build --scan
+        run: ./gradlew build --no-build-scan
 
       - name: Upload build artifact from Windows
         uses: actions/upload-artifact@v3
@@ -46,8 +46,11 @@ jobs:
       - name: Set up Gradle
         uses: gradle/gradle-build-action@v2
 
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
       - name: Build on Linux
-        run: ./gradlew build --scan
+        run: ./gradlew build --no-build-scan
 
       - name: Upload build artifact from Linux
         uses: actions/upload-artifact@v3
