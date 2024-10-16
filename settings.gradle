@@ -1,0 +1,5 @@
+rootProject.name = 'LWJGLTutorial'
+
+ext {
+    lwjglVersion = '3.3.4'
+}
