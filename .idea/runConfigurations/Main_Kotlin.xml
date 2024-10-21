@@ -2,7 +2,7 @@
   <configuration default="false" name="Main Kotlin" type="JetRunConfigurationType">
     <option name="MAIN_CLASS_NAME" value="tk.ff0044.lwkglTutorial.game.MainKt" />
     <module name="LWJGLTutorial.main" />
-    <option name="PROGRAM_PARAMETERS" value="--dev" />
+    <option name="PROGRAM_PARAMETERS" value="--dev --title=&quot;Kotlin LWJGL&quot;" />
     <shortenClasspath name="NONE" />
     <method v="2">
       <option name="Make" enabled="true" />

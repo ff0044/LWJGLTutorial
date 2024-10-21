@@ -18,7 +18,7 @@ public class Utils {
             }
         } catch (Exception e) {
             Logger.error("An error occured while trying to load resource: " +
-                    Arrays.toString(e.getStackTrace()), e);
+                    e.getMessage(), (Object) e.getStackTrace());
             throw e;
         }
 

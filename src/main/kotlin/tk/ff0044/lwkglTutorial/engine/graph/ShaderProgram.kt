@@ -13,7 +13,8 @@ class ShaderProgram {
 
     init {
         if (programId == 0) {
-            throw Exception("Could not create Shader")
+            Logger.error("Could not create Shader", Exception().printStackTrace())
+            throw Exception()
         }
     }
 

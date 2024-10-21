@@ -14,20 +14,30 @@ class DummyGame : IGameLogic {
     private val renderer: Renderer = Renderer()
     lateinit var mesh : Mesh
 
-    var positions : FloatArray = floatArrayOf(
+    // ------------------------------------------ //
+    val positions = floatArrayOf(
         -0.5f,  0.5f, 0.0f,
         -0.5f, -0.5f, 0.0f,
-        0.5f,  0.5f, 0.0f,
-        0.5f,  0.5f, 0.0f,
-        -0.5f, -0.5f, 0.0f,
         0.5f, -0.5f, 0.0f,
+        0.5f,  0.5f, 0.0f,
     )
+    val indices = intArrayOf(
+        0, 1, 3,
+        3, 1, 2
+    )
+    val colors = floatArrayOf(
+        0.5f, 0.0f, 0.0f,
+        0.0f, 0.5f, 0.0f,
+        0.0f, 0.0f, 0.5f,
+        0.0f, 0.5f, 0.5f,
+    )
+    // ------------------------------------------ //
 
     @Throws(Exception::class)
     override fun init() {
         renderer.init()
-        val indices = intArrayOf(0, 1, 3, 3, 1, 2)
-        mesh = Mesh(positions, indices)
+
+        mesh = Mesh(positions, indices, colors)
     }
 
     override fun input(window: Window?) {

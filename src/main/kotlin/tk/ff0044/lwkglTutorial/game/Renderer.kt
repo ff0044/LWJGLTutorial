@@ -6,7 +6,7 @@ import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
-import org.lwjgl.opengl.GL30.glBindVertexArray
+import org.lwjgl.opengl.GL30.*
 import org.lwjgl.system.MemoryUtil
 import tk.ff0044.lwkglTutorial.engine.Window
 import tk.ff0044.lwkglTutorial.engine.common.Utils
@@ -80,15 +80,20 @@ class Renderer {
 
         // Draw the mesh
         glBindVertexArray(mesh.getVaoId())
-        glDrawArrays(GL_TRIANGLES, 0, mesh.getVertexCount())
+        glEnableVertexAttribArray(0)
+        glEnableVertexAttribArray(1)
+        glDrawElements(GL_TRIANGLES, mesh.getVertexCount(), GL_UNSIGNED_INT, 0)
 
         // Restore state
+        glDisableVertexAttribArray(0)
         glBindVertexArray(0)
 
         shaderProgram.unbind()
     }
 
     fun cleanup() {
-        shaderProgram.cleanup()
+        if (shaderProgram != null) {
+            shaderProgram.cleanup()
+        }
     }
 }

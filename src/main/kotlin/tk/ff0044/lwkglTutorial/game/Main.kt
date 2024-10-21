@@ -15,6 +15,33 @@ fun main(args: Array<String>) {
 
     for (arg in args) {
         when {
+            arg.startsWith("--dev") -> {
+                isDevMode = true
+                title += " [DEV]"
+                Configuration.set("writer1.level", "debug")
+                Logger.info {"""
+                    
+                    -------------------------------------- START OF NEW LOG --------------------------------------
+                    
+                     *=====================================================*
+                    /   --dev has been enabled in the program arguments     \
+                    |                                                       |
+                    |       To disable it, quit this app, remove the        |
+                    |               argument, then rerun it.                |
+                    |                                                       |
+                    |    If not removed, nothing bad will happen, however   |
+                    |    performance will be heavily degraded from the      |
+                    |              debugging of the dev mode.               |
+                    |                                                       |
+                    |           If you are intending to do this:            |
+                    |       Developer mode has been enabled, watch out      |
+                     \                  ○( ＾皿＾)っ Hehehe…                 /
+                     *=====================================================*
+                    
+                    
+                    
+                """.trimIndent()}
+            }
             arg.startsWith("--title=") -> {
                 title = arg.substringAfter("=")
                 Logger.info { "Title set to: $title" }
@@ -44,12 +71,7 @@ fun main(args: Array<String>) {
                 }
                 Logger.info { "vSync set to: $vSync" }
             }
-            arg == "--dev" -> {
-                isDevMode = true
-                title += " [DEV]"
-                Configuration.set("writer1.level", "debug")
-                Logger.info { "Developer mode enabled, watch out 👻👻👻" }
-            }
+
         }
     }
 
@@ -58,13 +80,14 @@ fun main(args: Array<String>) {
     }
 
     try {
+        if (!isDevMode) {Logger.info{"\n-------------------------------------- START OF NEW LOG --------------------------------------"}}
         Logger.info { "vSync is $vSync" }
         val gameLogic: IGameLogic = DummyGame()
         val gameEng: GameEngine = GameEngine(title, width, height, vSync, gameLogic)
         Logger.info { "Running game engine" }
         gameEng.run()
     } catch (e: Exception) {
-        Logger.error("Error while running game: ${e.printStackTrace()}", e)
+        Logger.error("Error while running game: ${e.message}", e.printStackTrace())
         exitProcess(-1)
     }
 }
