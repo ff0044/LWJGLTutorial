@@ -1,7 +1,7 @@
 /*
     Mainly used for logging and entering file.
 
-
+    Main.kt || project by ff0044
  */
 
 package tk.ff0044.lwkglTutorial.game
@@ -43,8 +43,6 @@ fun main(args: Array<String>) {
                     |       Developer mode has been enabled, watch out      |
                      \                  ○( ＾皿＾)っ Hehehe…                 /
                      *=====================================================*
-                    
-                    
                     
                 """.trimIndent()}
             }
@@ -93,7 +91,9 @@ fun main(args: Array<String>) {
         Logger.info { "Running game engine" }
         gameEng.run()
     } catch (e: Exception) {
-        Logger.error("Error while running game: ${e.message}", e.printStackTrace())
+        Logger.error("An error has occurred while running game: ${e.printStackTrace()}", e)
         exitProcess(-1)
+    } finally {
+        Logger.info                 { "----------------------------------------- END OF LOG -----------------------------------------\n" }
     }
 }

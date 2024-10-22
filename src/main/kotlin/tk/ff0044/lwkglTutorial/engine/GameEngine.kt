@@ -105,6 +105,7 @@ open class GameEngine(
     }
 
     fun cleanup() {
+        Logger.debug{"gameLogic is now being cleaned up"}
         gameLogic.cleanup()
     }
 

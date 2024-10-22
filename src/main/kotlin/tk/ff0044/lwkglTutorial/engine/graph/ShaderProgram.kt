@@ -101,10 +101,13 @@ class ShaderProgram {
         glUseProgram(0)
     }
 
-    fun cleanup() {
+    fun cleanup() : Int {
         unbind()
+        Logger.debug{"Shader program has been unbinded"}
         if (programId != 0) {
             glDeleteProgram(programId)
+            Logger.debug{"Shader program has been deleted"}
         }
+        return 1
     }
 }

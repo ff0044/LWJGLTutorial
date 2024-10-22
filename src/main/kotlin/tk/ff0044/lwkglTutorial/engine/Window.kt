@@ -5,8 +5,10 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWVidMode
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
-import org.lwjgl.system.MemoryUtil.*
+import org.lwjgl.system.MemoryUtil.NULL
 import org.tinylog.Logger
+
+
 class Window(private val title: String?, private var width: Int, private var height: Int, private var vSync: Boolean) {
     private var windowHandle: Long? = null
     private var resized = false
@@ -50,6 +52,18 @@ class Window(private val title: String?, private var width: Int, private var hei
             this.width = width
             this.height = height
             this.setResized(true)
+        }
+
+
+        // Setup a key callback. It will be called every time a key is pressed, repeated or released.
+        Logger.debug{"Setting up the key callback"}
+        glfwSetKeyCallback(
+            windowHandle!!
+        ) { window: Long, key: Int, scancode: Int, action: Int, mods: Int ->
+            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
+                Logger.debug{"GLFW_KEY_ESCAPE has been pressed. Window will close now. "}
+                glfwSetWindowShouldClose(window, true) // We will detect this in the rendering loop
+            }
         }
 
         Logger.debug { "Centering the window" }

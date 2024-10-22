@@ -1,6 +1,5 @@
 package tk.ff0044.lwkglTutorial.engine.graph
 
-import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.system.MemoryUtil.memAllocFloat
@@ -8,107 +7,110 @@ import org.tinylog.Logger
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
 
-class Mesh(positions: FloatArray, colors : FloatArray, indices: IntArray, ) {
-    private var vaoId = 0
+class Mesh(positions: FloatArray, colours: FloatArray, indices: IntArray) {
+    var vaoId: Int = 0
+
     private var posVboId = 0
+
+    private var colourVboId = 0
+
     private var idxVboId = 0
-    private var colorVboId = 0
-    private var vertexCount = 0
+
+    var vertexCount: Int = 0
 
     init {
-        init(positions, colors, indices)
-    }
-
-    fun init(positions: FloatArray, colors : FloatArray, indices: IntArray) {
         var posBuffer: FloatBuffer? = null
-        var colorBuffer : FloatBuffer? = null
+        var colourBuffer: FloatBuffer? = null
         var indicesBuffer: IntBuffer? = null
         try {
-            Logger.debug { "Initializing vertex count" }
             vertexCount = indices.size
+            Logger.debug { "Vertex count set to \${vertexCount}" }
 
-            Logger.debug { "Generating and binding VAO" }
             vaoId = glGenVertexArrays()
+            Logger.debug { "Generated VAO with ID \${vaoId}" }
             glBindVertexArray(vaoId)
+            Logger.debug { "Bound VAO with ID \${vaoId}" }
 
             // Position VBO
-            Logger.debug { "Generating and binding Position VBO" }
-            posVboId = glGenBuffers();
-            posBuffer = MemoryUtil.memAllocFloat(positions.size);
-            posBuffer.put(positions).flip();
-            glBindBuffer(GL_ARRAY_BUFFER, posVboId);
-            glBufferData(GL_ARRAY_BUFFER, posBuffer, GL_STATIC_DRAW);
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+            posVboId = glGenBuffers()
+            Logger.debug { "Generated Position VBO with ID \${posVboId}" }
+            posBuffer = memAllocFloat(positions.size)
+            posBuffer.put(positions).flip()
+            glBindBuffer(GL_ARRAY_BUFFER, posVboId)
+            Logger.debug { "Bound Position VBO with ID \${posVboId}" }
+            glBufferData(GL_ARRAY_BUFFER, posBuffer, GL_STATIC_DRAW)
+            Logger.debug { "Position data uploaded to VBO" }
+            glEnableVertexAttribArray(0)
+            glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0)
+            Logger.debug { "Position VBO configured" }
 
-            // Color VBO
-            Logger.debug { "Generating and binding Colour VBO" }
-            colorVboId = glGenBuffers();
-            colorBuffer = MemoryUtil.memAllocFloat(colors.size);
-            colorBuffer.put(colors).flip();
-            glBindBuffer(GL_ARRAY_BUFFER, colorVboId);
-            glBufferData(GL_ARRAY_BUFFER, colorBuffer, GL_STATIC_DRAW);
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
+            // Colour VBO
+            colourVboId = glGenBuffers()
+            Logger.debug { "Generated Colour VBO with ID \${colourVboId}" }
+            colourBuffer = memAllocFloat(colours.size)
+            colourBuffer.put(colours).flip()
+            glBindBuffer(GL_ARRAY_BUFFER, colourVboId)
+            Logger.debug { "Bound Colour VBO with ID \${colourVboId}" }
+            glBufferData(GL_ARRAY_BUFFER, colourBuffer, GL_STATIC_DRAW)
+            Logger.debug { "Colour data uploaded to VBO" }
+            glEnableVertexAttribArray(1)
+            glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0)
+            Logger.debug { "Colour VBO configured" }
 
             // Index VBO
-            Logger.debug { "Generating and binding Index VBO" }
-            idxVboId = glGenBuffers();
-            indicesBuffer = MemoryUtil.memAllocInt(indices.size);
-            indicesBuffer.put(indices).flip();
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, idxVboId);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesBuffer, GL_STATIC_DRAW);
+            idxVboId = glGenBuffers()
+            Logger.debug { "Generated Index VBO with ID \${idxVboId}" }
+            indicesBuffer = MemoryUtil.memAllocInt(indices.size)
+            indicesBuffer.put(indices).flip()
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, idxVboId)
+            Logger.debug { "Bound Index VBO with ID \${idxVboId}" }
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesBuffer, GL_STATIC_DRAW)
+            Logger.debug { "Index data uploaded to VBO" }
 
-            Logger.debug { "Unbinding buffers" }
             glBindBuffer(GL_ARRAY_BUFFER, 0)
             glBindVertexArray(0)
-        } catch (e : Exception) {
-          Logger.error("An error has occured while creating a mesh: ${e.message}", e.printStackTrace())
+            Logger.debug { "Unbound VBO and VAO" }
         } finally {
-            Logger.debug { "Freeing memory buffers" }
             if (posBuffer != null) {
-                MemoryUtil.memFree(posBuffer);
+                MemoryUtil.memFree(posBuffer)
+                Logger.debug { "Freed Position Buffer" }
             }
-            if (colorBuffer != null) {
-                MemoryUtil.memFree(colorBuffer);
+            if (colourBuffer != null) {
+                MemoryUtil.memFree(colourBuffer)
+                Logger.debug { "Freed Colour Buffer" }
             }
             if (indicesBuffer != null) {
-                MemoryUtil.memFree(indicesBuffer);
+                MemoryUtil.memFree(indicesBuffer)
+                Logger.debug { "Freed Index Buffer" }
             }
         }
     }
 
-    fun getVaoId(): Int {
-        return vaoId
-    }
+    fun render() {
+        // Draw the mesh
+        glBindVertexArray(vaoId)
 
-    fun getVertexCount(): Int {
-        return vertexCount
+        // Draw the elements of the vertex
+        glDrawElements(GL_TRIANGLES, vertexCount, GL_UNSIGNED_INT, 0)
+
+        // Restore state
+        glBindVertexArray(0)
     }
 
     fun cleanUp() {
         Logger.debug { "Disabling vertex attribute array" }
         glDisableVertexAttribArray(0)
 
-        Logger.debug { "Deleting position VBO" }
+        // Delete the VBOs
+        Logger.debug { "Deleting VBOs" }
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         glDeleteBuffers(posVboId)
-
-        Logger.debug { "Deleting index VBO" }
+        glDeleteBuffers(colourVboId)
         glDeleteBuffers(idxVboId)
 
+        // Delete the VAO
         Logger.debug { "Deleting VAO" }
         glBindVertexArray(0)
         glDeleteVertexArrays(vaoId)
-    }
-
-    fun render() {
-        // Draw the mesh
-        glBindVertexArray(getVaoId())
-
-        glDrawElements(GL_TRIANGLES, getVertexCount(), GL_UNSIGNED_INT, 0)
-
-        // Restore state
-        glBindVertexArray(0)
     }
 }

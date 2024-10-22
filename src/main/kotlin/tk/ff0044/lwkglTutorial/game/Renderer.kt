@@ -2,18 +2,13 @@ package tk.ff0044.lwkglTutorial.game
 
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL15
-import org.lwjgl.opengl.GL20
-import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30.*
-import org.lwjgl.system.MemoryUtil
 import org.tinylog.Logger
 import tk.ff0044.lwkglTutorial.engine.GameItem
 import tk.ff0044.lwkglTutorial.engine.Window
 import tk.ff0044.lwkglTutorial.engine.common.Utils
 import tk.ff0044.lwkglTutorial.engine.graph.ShaderProgram
 import tk.ff0044.lwkglTutorial.engine.graph.Transformation
-import java.nio.FloatBuffer
 
 
 class Renderer {
@@ -22,11 +17,12 @@ class Renderer {
     val Z_NEAR: Float = 0.01f
     val Z_FAR: Float = 1000f
 
-    private val transformation: Transformation = Transformation()
-    private val shaderProgram: ShaderProgram = ShaderProgram()
+    private var transformation: Transformation = Transformation()
+    lateinit private var shaderProgram: ShaderProgram
 
     @Throws(Exception::class)
     fun init(window:Window) {
+        shaderProgram = ShaderProgram()
         Logger.debug{"Loading shader at /shaders/shader.vert"}
         shaderProgram.createVertexShader(Utils.loadResource("/shaders/shader.vert"))
         Logger.debug{"Loading shader at /shaders/shader.frag"}
@@ -55,7 +51,6 @@ class Renderer {
 
         shaderProgram.bind()
 
-
         // Update projection Matrix
         val projectionMatrix = transformation.getProjectionMatrix(
             FOV,
@@ -67,20 +62,27 @@ class Renderer {
         // Render each gameItem
         for (gameItem in gameItems) {
             // Set world matrix for this item
-            val worldMatrix = transformation.getWorldMatrix(
-                gameItem.getPosition(),
-                gameItem.getRotation(),
-                gameItem.getScale()
-            )
+            val worldMatrix =
+                transformation.getWorldMatrix(
+                    gameItem.position,
+                    gameItem.rotation,
+                    gameItem.scale
+                )
             shaderProgram.setUniform("worldMatrix", worldMatrix)
             // Render the mes for this game item
-            gameItem.getMesh().render()
+            gameItem.mesh.render()
         }
 
         shaderProgram.unbind()
     }
 
     fun cleanup() {
-        shaderProgram.cleanup()
+        Logger.debug{"Shader is being cleaned up"}
+        val exitCode = shaderProgram.cleanup()
+        if (exitCode == 1) {
+            Logger.debug { "shaderProgram.cleanup() returned success" }
+        } else {
+            Logger.error{"Error has occurred while exiting shader program ; Will still continue closing"}
+        }
     }
 }
