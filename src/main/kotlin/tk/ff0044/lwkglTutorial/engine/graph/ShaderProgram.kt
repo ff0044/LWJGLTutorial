@@ -1,102 +1,110 @@
 package tk.ff0044.lwkglTutorial.engine.graph
 
-import org.lwjgl.opengl.GL20
+import org.joml.Matrix4f
+import org.lwjgl.opengl.GL20.*
+import org.lwjgl.system.MemoryStack
 import org.tinylog.Logger
 
-
 class ShaderProgram {
-    private val programId = GL20.glCreateProgram()
-
+    private var programId : Int = 0
     private var vertexShaderId = 0
-
     private var fragmentShaderId = 0
+    private var uniforms: MutableMap<String, Int> = HashMap()
 
     init {
+        programId = glCreateProgram()
         if (programId == 0) {
-            Logger.error("Could not create Shader", Exception().printStackTrace())
-            throw Exception()
+            Logger.error { "Could not create Shader" }
+            throw Exception("Could not create Shader")
+        }
+
+        val error = glGetError()
+        if (error != GL_NO_ERROR) {
+            Logger.error { "OpenGL error: $error" }
+            throw Exception("OpenGL error: $error")
         }
     }
 
     @Throws(Exception::class)
-    fun createVertexShader(shaderCode: String?) {
-        Logger.debug{"Creating vertex shader"}
-        vertexShaderId = createShader(shaderCode, GL20.GL_VERTEX_SHADER)
+    fun createUniform(uniformName: String) {
+        val uniformLocation = glGetUniformLocation(programId, uniformName)
+        if (uniformLocation < 0) {
+            throw Exception("Could not find uniform: $uniformName")
+        }
+        uniforms[uniformName] = uniformLocation
     }
 
     @Throws(Exception::class)
-    fun createFragmentShader(shaderCode: String?) {
-        Logger.debug{"Creating fragment shader"}
-        fragmentShaderId = createShader(shaderCode, GL20.GL_FRAGMENT_SHADER)
+    fun setUniform(uniformName: String, value: Matrix4f) {
+        // Dump the matrix into a float buffer
+        MemoryStack.stackPush().use { stack ->
+            glUniformMatrix4fv(uniforms[uniformName]!!, false, value[stack.mallocFloat(16)])
+        }
     }
 
     @Throws(Exception::class)
-    protected fun createShader(shaderCode: String?, shaderType: Int): Int {
-        Logger.debug{"Creating shader"}
-        val shaderId = GL20.glCreateShader(shaderType)
+    fun createVertexShader(shaderCode: String) {
+        vertexShaderId = createShader(shaderCode, GL_VERTEX_SHADER)
+    }
+
+    @Throws(Exception::class)
+    fun createFragmentShader(shaderCode: String) {
+        fragmentShaderId = createShader(shaderCode, GL_FRAGMENT_SHADER)
+    }
+
+    @Throws(Exception::class)
+    private fun createShader(shaderCode: String, shaderType: Int): Int {
+        val shaderId = glCreateShader(shaderType)
         if (shaderId == 0) {
-            Logger.error("Error creating shader. Type: $shaderType", Exception())
-            throw Exception()
+            throw Exception("Error creating shader. Type: $shaderType")
         }
 
-        Logger.debug{"Referencing shader source"}
-        GL20.glShaderSource(shaderId, shaderCode)
-        Logger.info{"Compiling Shaders"}
-        GL20.glCompileShader(shaderId)
+        glShaderSource(shaderId, shaderCode)
+        glCompileShader(shaderId)
 
-        Logger.info{"Checking compile status"}
-        var compileStatus = GL20.glGetShaderi(shaderId, GL20.GL_COMPILE_STATUS)
-        Logger.info{"Compile status: $compileStatus"}
-        if ( compileStatus == 0) {
-            Logger.error("Error compiling Shader code: " + GL20.glGetShaderInfoLog(shaderId, 1024), Exception())
-            throw Exception()
+        if (glGetShaderi(shaderId, GL_COMPILE_STATUS) == 0) {
+            val infoLog = glGetShaderInfoLog(shaderId, 1024)
+            glDeleteShader(shaderId)
+            throw Exception("Error compiling Shader code: $infoLog")
         }
 
-        Logger.debug{"Attaching shader to program"}
-        GL20.glAttachShader(programId, shaderId)
-
+        glAttachShader(programId, shaderId)
         return shaderId
     }
 
     @Throws(Exception::class)
     fun link() {
-        Logger.debug{""}
-        GL20.glLinkProgram(programId)
-        if (GL20.glGetProgrami(programId, GL20.GL_LINK_STATUS) == 0) {
-            Logger.error("Error linking Shader code: " + GL20.glGetProgramInfoLog(programId, 1024), Exception())
-            throw Exception()
+        glLinkProgram(programId)
+        if (glGetProgrami(programId, GL_LINK_STATUS) == 0) {
+            val infoLog = glGetProgramInfoLog(programId, 1024)
+            throw Exception("Error linking Shader code: $infoLog")
         }
 
-        Logger.debug{"Detaching vertex shader"}
         if (vertexShaderId != 0) {
-            Logger.debug{"Successfully detached vertex shader"}
-            GL20.glDetachShader(programId, vertexShaderId)
+            glDetachShader(programId, vertexShaderId)
         }
-        Logger.debug{"Detaching fragment shader"}
         if (fragmentShaderId != 0) {
-            Logger.debug{"Successfully detached fragment shader"}
-            GL20.glDetachShader(programId, fragmentShaderId)
+            glDetachShader(programId, fragmentShaderId)
         }
 
-        Logger.debug{"Validating shader code"}
-        GL20.glValidateProgram(programId)
-        if (GL20.glGetProgrami(programId, GL20.GL_VALIDATE_STATUS) == 0) {
-            Logger.warn{"Warning validating Shader code: " + GL20.glGetProgramInfoLog(programId, 1024)}
+        glValidateProgram(programId)
+        if (glGetProgrami(programId, GL_VALIDATE_STATUS) == 0) {
+            Logger.warn{"Warning validating Shader code: " + glGetProgramInfoLog(programId, 1024)}
         }
     }
 
     fun bind() {
-        GL20.glUseProgram(programId)
+        glUseProgram(programId)
     }
 
     fun unbind() {
-        GL20.glUseProgram(0)
+        glUseProgram(0)
     }
 
     fun cleanup() {
         unbind()
         if (programId != 0) {
-            GL20.glDeleteProgram(programId)
+            glDeleteProgram(programId)
         }
     }
 }

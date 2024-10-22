@@ -1,4 +1,5 @@
-import org.lwjgl.opengl.GL
+package tk.ff0044.lwkglTutorial.engine.graph
+
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.system.MemoryUtil
@@ -7,23 +8,21 @@ import org.tinylog.Logger
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
 
-
-class Mesh(positions: FloatArray, indices: IntArray, colors : FloatArray) {
+class Mesh(positions: FloatArray, colors : FloatArray, indices: IntArray, ) {
     private var vaoId = 0
     private var posVboId = 0
     private var idxVboId = 0
     private var colorVboId = 0
-
-    private var vertexCount = indices.size
+    private var vertexCount = 0
 
     init {
-        init(positions, indices, colors)
+        init(positions, colors, indices)
     }
 
-    fun init(positions: FloatArray, indices: IntArray, colors : FloatArray) {
+    fun init(positions: FloatArray, colors : FloatArray, indices: IntArray) {
         var posBuffer: FloatBuffer? = null
-        var indicesBuffer: IntBuffer? = null
         var colorBuffer : FloatBuffer? = null
+        var indicesBuffer: IntBuffer? = null
         try {
             Logger.debug { "Initializing vertex count" }
             vertexCount = indices.size
@@ -34,30 +33,31 @@ class Mesh(positions: FloatArray, indices: IntArray, colors : FloatArray) {
 
             // Position VBO
             Logger.debug { "Generating and binding Position VBO" }
-            posVboId = glGenBuffers()
-            posBuffer = MemoryUtil.memAllocFloat(positions.size)
-            posBuffer.put(positions).flip()
-            glBindBuffer(GL_ARRAY_BUFFER, posVboId)
-            glBufferData(GL_ARRAY_BUFFER, posBuffer, GL_STATIC_DRAW)
-            glEnableVertexAttribArray(0)
-            glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0)
+            posVboId = glGenBuffers();
+            posBuffer = MemoryUtil.memAllocFloat(positions.size);
+            posBuffer.put(positions).flip();
+            glBindBuffer(GL_ARRAY_BUFFER, posVboId);
+            glBufferData(GL_ARRAY_BUFFER, posBuffer, GL_STATIC_DRAW);
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+
+            // Color VBO
+            Logger.debug { "Generating and binding Colour VBO" }
+            colorVboId = glGenBuffers();
+            colorBuffer = MemoryUtil.memAllocFloat(colors.size);
+            colorBuffer.put(colors).flip();
+            glBindBuffer(GL_ARRAY_BUFFER, colorVboId);
+            glBufferData(GL_ARRAY_BUFFER, colorBuffer, GL_STATIC_DRAW);
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
 
             // Index VBO
             Logger.debug { "Generating and binding Index VBO" }
-            idxVboId = glGenBuffers()
-            indicesBuffer = MemoryUtil.memAllocInt(indices.size)
-            indicesBuffer.put(indices).flip()
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, idxVboId)
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesBuffer, GL_STATIC_DRAW)
-
-            // Colour VBO
-            Logger.debug { "Generating and binding Colour VBO" }
-            colorVboId = glGenBuffers()
-            colorBuffer = memAllocFloat(colors.size)
-            colorBuffer.put(colors).flip()
-            glBindBuffer(GL_ARRAY_BUFFER, colorVboId)
-            glBufferData(GL_ARRAY_BUFFER, colorBuffer, GL_STATIC_DRAW)
-            GL20.glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0)
+            idxVboId = glGenBuffers();
+            indicesBuffer = MemoryUtil.memAllocInt(indices.size);
+            indicesBuffer.put(indices).flip();
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, idxVboId);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesBuffer, GL_STATIC_DRAW);
 
             Logger.debug { "Unbinding buffers" }
             glBindBuffer(GL_ARRAY_BUFFER, 0)
@@ -67,13 +67,13 @@ class Mesh(positions: FloatArray, indices: IntArray, colors : FloatArray) {
         } finally {
             Logger.debug { "Freeing memory buffers" }
             if (posBuffer != null) {
-                MemoryUtil.memFree(posBuffer)
-            }
-            if (indicesBuffer != null) {
-                MemoryUtil.memFree(indicesBuffer)
+                MemoryUtil.memFree(posBuffer);
             }
             if (colorBuffer != null) {
-                MemoryUtil.memFree(colorBuffer)
+                MemoryUtil.memFree(colorBuffer);
+            }
+            if (indicesBuffer != null) {
+                MemoryUtil.memFree(indicesBuffer);
             }
         }
     }
@@ -100,5 +100,15 @@ class Mesh(positions: FloatArray, indices: IntArray, colors : FloatArray) {
         Logger.debug { "Deleting VAO" }
         glBindVertexArray(0)
         glDeleteVertexArrays(vaoId)
+    }
+
+    fun render() {
+        // Draw the mesh
+        glBindVertexArray(getVaoId())
+
+        glDrawElements(GL_TRIANGLES, getVertexCount(), GL_UNSIGNED_INT, 0)
+
+        // Restore state
+        glBindVertexArray(0)
     }
 }

@@ -5,9 +5,8 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWVidMode
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
-import org.lwjgl.system.MemoryUtil.NULL
+import org.lwjgl.system.MemoryUtil.*
 import org.tinylog.Logger
-
 class Window(private val title: String?, private var width: Int, private var height: Int, private var vSync: Boolean) {
     private var windowHandle: Long? = null
     private var resized = false
@@ -72,6 +71,7 @@ class Window(private val title: String?, private var width: Int, private var hei
 
         Logger.debug { "Showing the window" }
         glfwShowWindow(windowHandle!!)
+
     }
 
     fun setClearColor(red: Float, green: Float, blue: Float, alpha: Float) {

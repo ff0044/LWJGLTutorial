@@ -1,6 +1,5 @@
 package tk.ff0044.lwkglTutorial.game
 
-import Mesh
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15
@@ -8,67 +7,45 @@ import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.system.MemoryUtil
+import org.tinylog.Logger
+import tk.ff0044.lwkglTutorial.engine.GameItem
 import tk.ff0044.lwkglTutorial.engine.Window
 import tk.ff0044.lwkglTutorial.engine.common.Utils
 import tk.ff0044.lwkglTutorial.engine.graph.ShaderProgram
+import tk.ff0044.lwkglTutorial.engine.graph.Transformation
 import java.nio.FloatBuffer
 
 
 class Renderer {
-    private var vboId = 0
 
-    private var vaoId = 0
+    val FOV: Float = Math.toRadians(60.0).toFloat()
+    val Z_NEAR: Float = 0.01f
+    val Z_FAR: Float = 1000f
 
-    private lateinit var shaderProgram: ShaderProgram
+    private val transformation: Transformation = Transformation()
+    private val shaderProgram: ShaderProgram = ShaderProgram()
 
     @Throws(Exception::class)
-    fun init() {
-        shaderProgram = ShaderProgram()
+    fun init(window:Window) {
+        Logger.debug{"Loading shader at /shaders/shader.vert"}
         shaderProgram.createVertexShader(Utils.loadResource("/shaders/shader.vert"))
+        Logger.debug{"Loading shader at /shaders/shader.frag"}
         shaderProgram.createFragmentShader(Utils.loadResource("/shaders/shader.frag"))
+        Logger.debug{"Linking shaders"}
         shaderProgram.link()
 
-        val vertices = floatArrayOf(
-            0.0f, 0.5f, 0.0f,
-            -0.5f, -0.5f, 0.0f,
-            0.5f, -0.5f, 0.0f
-        )
-
-        var verticesBuffer: FloatBuffer? = null
-        try {
-            verticesBuffer = MemoryUtil.memAllocFloat(vertices.size)
-            verticesBuffer.put(vertices).flip()
-
-            // Create the VAO and bind to it
-            vaoId = GL30.glGenVertexArrays()
-            GL30.glBindVertexArray(vaoId)
-
-            // Create the VBO and bind to it
-            vboId = GL15.glGenBuffers()
-            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboId)
-            GL15.glBufferData(GL15.GL_ARRAY_BUFFER, verticesBuffer, GL15.GL_STATIC_DRAW)
-            // Enable location 0
-            GL20.glEnableVertexAttribArray(0)
-            // Define structure of the data
-            GL20.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 0, 0)
-
-            // Unbind the VBO
-            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0)
-
-            // Unbind the VAO
-            GL30.glBindVertexArray(0)
-        } finally {
-            if (verticesBuffer != null) {
-                MemoryUtil.memFree(verticesBuffer)
-            }
-        }
+        Logger.debug{"Creating uniform at projection and world matrix"}
+        shaderProgram.createUniform("projectionMatrix")
+        shaderProgram.createUniform("worldMatrix")
+        window.setClearColor(0.0f, 0.0f, 0.0f, 0.0f)
+        Logger.debug{"Successfully set the clear colour"}
     }
 
     private fun clear() {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT)
     }
 
-    fun render(window : Window, mesh: Mesh) {
+    fun render(window: Window, gameItems: Array<GameItem>) {
         clear()
 
         if (window.isResized()) {
@@ -78,22 +55,32 @@ class Renderer {
 
         shaderProgram.bind()
 
-        // Draw the mesh
-        glBindVertexArray(mesh.getVaoId())
-        glEnableVertexAttribArray(0)
-        glEnableVertexAttribArray(1)
-        glDrawElements(GL_TRIANGLES, mesh.getVertexCount(), GL_UNSIGNED_INT, 0)
 
-        // Restore state
-        glDisableVertexAttribArray(0)
-        glBindVertexArray(0)
+        // Update projection Matrix
+        val projectionMatrix = transformation.getProjectionMatrix(
+            FOV,
+            window.getWidth().toFloat(), window.getHeight().toFloat(), Z_NEAR, Z_FAR
+        )
+        shaderProgram.setUniform("projectionMatrix", projectionMatrix)
+
+
+        // Render each gameItem
+        for (gameItem in gameItems) {
+            // Set world matrix for this item
+            val worldMatrix = transformation.getWorldMatrix(
+                gameItem.getPosition(),
+                gameItem.getRotation(),
+                gameItem.getScale()
+            )
+            shaderProgram.setUniform("worldMatrix", worldMatrix)
+            // Render the mes for this game item
+            gameItem.getMesh().render()
+        }
 
         shaderProgram.unbind()
     }
 
     fun cleanup() {
-        if (shaderProgram != null) {
-            shaderProgram.cleanup()
-        }
+        shaderProgram.cleanup()
     }
 }

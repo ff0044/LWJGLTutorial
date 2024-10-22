@@ -1,3 +1,9 @@
+/*
+    Mainly used for logging and entering file.
+
+
+ */
+
 package tk.ff0044.lwkglTutorial.game
 
 import tk.ff0044.lwkglTutorial.engine.GameEngine

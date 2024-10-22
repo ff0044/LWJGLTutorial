@@ -39,7 +39,7 @@ open class GameEngine(
             gameLoop();
         } catch (e : Exception) {
             Logger.error("An error occured while attempting to run GameEngine classs: " +
-                    "${e.printStackTrace()}", e)
+                    "${e.printStackTrace()}", e.printStackTrace())
         } finally {
             cleanup()
         }
@@ -52,7 +52,7 @@ open class GameEngine(
         Logger.debug{"Timer is initialised"}
         timer.init();
         Logger.debug{"Game Logic is initialised"}
-        gameLogic.init();
+        gameLogic.init(window);
     }
 
     fun gameLoop() {
