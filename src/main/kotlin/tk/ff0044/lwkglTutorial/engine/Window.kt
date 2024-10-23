@@ -86,6 +86,9 @@ class Window(private val title: String?, private var width: Int, private var hei
         Logger.debug { "Showing the window" }
         glfwShowWindow(windowHandle!!)
 
+        Logger.debug { "Enabling GL_DEPTH_TEST" }
+        glEnable(GL_DEPTH_TEST)
+
     }
 
     fun setClearColor(red: Float, green: Float, blue: Float, alpha: Float) {

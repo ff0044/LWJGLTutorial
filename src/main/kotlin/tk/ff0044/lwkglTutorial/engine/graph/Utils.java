@@ -1,4 +1,4 @@
-package tk.ff0044.lwkglTutorial.engine.common;
+package tk.ff0044.lwkglTutorial.engine.graph;
 
 import org.tinylog.Logger;
 
@@ -16,8 +16,7 @@ public class Utils {
                 result = scanner.useDelimiter("\\A").next();
             }
         } catch (Exception e) {
-            Logger.error("An error occured while trying to load resource: " +
-                    e.getMessage(), (Object) e.getStackTrace());
+            Logger.error("An error occured while trying to load resource: " + e.getStackTrace(), e);
             throw e;
         }
 

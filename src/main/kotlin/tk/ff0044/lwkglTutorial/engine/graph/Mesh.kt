@@ -1,115 +1,139 @@
 package tk.ff0044.lwkglTutorial.engine.graph
 
-import org.lwjgl.opengl.GL30.*
 import org.lwjgl.system.MemoryUtil
-import org.lwjgl.system.MemoryUtil.memAllocFloat
-import org.tinylog.Logger
+
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
+import java.util.ArrayList
 
-class Mesh(positions: FloatArray, colours: FloatArray, indices: IntArray) {
-    var vaoId: Int = 0
+import org.lwjgl.opengl.GL11.GL_FLOAT
+import org.lwjgl.opengl.GL11.GL_TEXTURE_2D
+import org.lwjgl.opengl.GL11.GL_TRIANGLES
+import org.lwjgl.opengl.GL11.GL_UNSIGNED_INT
+import org.lwjgl.opengl.GL11.glBindTexture
+import org.lwjgl.opengl.GL11.glDrawElements
+import org.lwjgl.opengl.GL13.GL_TEXTURE0
+import org.lwjgl.opengl.GL13.glActiveTexture
+import org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER
+import org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER
+import org.lwjgl.opengl.GL15.GL_STATIC_DRAW
+import org.lwjgl.opengl.GL15.glBindBuffer
+import org.lwjgl.opengl.GL15.glBufferData
+import org.lwjgl.opengl.GL15.glDeleteBuffers
+import org.lwjgl.opengl.GL15.glGenBuffers
+import org.lwjgl.opengl.GL20.glDisableVertexAttribArray
+import org.lwjgl.opengl.GL20.glEnableVertexAttribArray
+import org.lwjgl.opengl.GL20.glVertexAttribPointer
+import org.lwjgl.opengl.GL30.glBindVertexArray
+import org.lwjgl.opengl.GL30.glDeleteVertexArrays
+import org.lwjgl.opengl.GL30.glGenVertexArrays
 
-    private var posVboId = 0
+import org.tinylog.Logger
 
-    private var colourVboId = 0
 
-    private var idxVboId = 0
+class Mesh(positions: FloatArray, var textCoords: FloatArray, indices: IntArray, var texture : Texture) {
+    private var vaoId = 0
 
-    var vertexCount: Int = 0
+    private var vboIdList: MutableList<Int> = mutableListOf()
+
+    private var vertexCount = 0
 
     init {
         var posBuffer: FloatBuffer? = null
-        var colourBuffer: FloatBuffer? = null
+        var textCoordsBuffer: FloatBuffer? = null
         var indicesBuffer: IntBuffer? = null
         try {
+            Logger.debug { "Setting vertex count" }
             vertexCount = indices.size
-            Logger.debug { "Vertex count set to \${vertexCount}" }
 
+            Logger.debug { "Generating and binding VAO" }
             vaoId = glGenVertexArrays()
-            Logger.debug { "Generated VAO with ID \${vaoId}" }
             glBindVertexArray(vaoId)
-            Logger.debug { "Bound VAO with ID \${vaoId}" }
 
             // Position VBO
-            posVboId = glGenBuffers()
-            Logger.debug { "Generated Position VBO with ID \${posVboId}" }
-            posBuffer = memAllocFloat(positions.size)
+            Logger.debug { "Generating Position VBO" }
+            var vboId = glGenBuffers()
+            vboIdList.add(vboId)
+            posBuffer = MemoryUtil.memAllocFloat(positions.size)
             posBuffer.put(positions).flip()
-            glBindBuffer(GL_ARRAY_BUFFER, posVboId)
-            Logger.debug { "Bound Position VBO with ID \${posVboId}" }
+            glBindBuffer(GL_ARRAY_BUFFER, vboId)
             glBufferData(GL_ARRAY_BUFFER, posBuffer, GL_STATIC_DRAW)
-            Logger.debug { "Position data uploaded to VBO" }
             glEnableVertexAttribArray(0)
             glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0)
-            Logger.debug { "Position VBO configured" }
 
-            // Colour VBO
-            colourVboId = glGenBuffers()
-            Logger.debug { "Generated Colour VBO with ID \${colourVboId}" }
-            colourBuffer = memAllocFloat(colours.size)
-            colourBuffer.put(colours).flip()
-            glBindBuffer(GL_ARRAY_BUFFER, colourVboId)
-            Logger.debug { "Bound Colour VBO with ID \${colourVboId}" }
-            glBufferData(GL_ARRAY_BUFFER, colourBuffer, GL_STATIC_DRAW)
-            Logger.debug { "Colour data uploaded to VBO" }
+            // Texture coordinates VBO
+            Logger.debug { "Generating Texture coordinates VBO" }
+            vboId = glGenBuffers()
+            vboIdList.add(vboId)
+            textCoordsBuffer = MemoryUtil.memAllocFloat(textCoords.size)
+            textCoordsBuffer.put(textCoords).flip()
+            glBindBuffer(GL_ARRAY_BUFFER, vboId)
+            glBufferData(GL_ARRAY_BUFFER, textCoordsBuffer, GL_STATIC_DRAW)
             glEnableVertexAttribArray(1)
-            glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0)
-            Logger.debug { "Colour VBO configured" }
+            glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0)
 
             // Index VBO
-            idxVboId = glGenBuffers()
-            Logger.debug { "Generated Index VBO with ID \${idxVboId}" }
+            Logger.debug { "Generating Index VBO" }
+            vboId = glGenBuffers()
+            vboIdList.add(vboId)
             indicesBuffer = MemoryUtil.memAllocInt(indices.size)
             indicesBuffer.put(indices).flip()
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, idxVboId)
-            Logger.debug { "Bound Index VBO with ID \${idxVboId}" }
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboId)
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesBuffer, GL_STATIC_DRAW)
-            Logger.debug { "Index data uploaded to VBO" }
 
+            Logger.debug { "Unbinding buffers" }
             glBindBuffer(GL_ARRAY_BUFFER, 0)
             glBindVertexArray(0)
-            Logger.debug { "Unbound VBO and VAO" }
         } finally {
+            Logger.debug { "Freeing buffers" }
             if (posBuffer != null) {
                 MemoryUtil.memFree(posBuffer)
-                Logger.debug { "Freed Position Buffer" }
             }
-            if (colourBuffer != null) {
-                MemoryUtil.memFree(colourBuffer)
-                Logger.debug { "Freed Colour Buffer" }
+            if (textCoordsBuffer != null) {
+                MemoryUtil.memFree(textCoordsBuffer)
             }
             if (indicesBuffer != null) {
                 MemoryUtil.memFree(indicesBuffer)
-                Logger.debug { "Freed Index Buffer" }
             }
         }
     }
 
+
     fun render() {
-        // Draw the mesh
+        // Activate first texture unit
+        glActiveTexture(GL_TEXTURE0);
+        // Bind the texture
+        glBindTexture(GL_TEXTURE_2D, texture.id);
+
         glBindVertexArray(vaoId)
 
-        // Draw the elements of the vertex
         glDrawElements(GL_TRIANGLES, vertexCount, GL_UNSIGNED_INT, 0)
 
-        // Restore state
         glBindVertexArray(0)
+
     }
 
     fun cleanUp() {
-        Logger.debug { "Disabling vertex attribute array" }
+        Logger.debug{"Disabling vertex attribute array"}
         glDisableVertexAttribArray(0)
+        Logger.debug{"Successfully disabled"}
 
         // Delete the VBOs
-        Logger.debug { "Deleting VBOs" }
+        Logger.debug{"Deleting VBO List"}
         glBindBuffer(GL_ARRAY_BUFFER, 0)
-        glDeleteBuffers(posVboId)
-        glDeleteBuffers(colourVboId)
-        glDeleteBuffers(idxVboId)
+        for (vboId in vboIdList) {
+            glDeleteBuffers(vboId)
+            Logger.debug{"Deleted $vboId"}
+        }
+        Logger.debug{"Successfully deleted VBO List"}
+
+
+        // Delete the texture
+        texture.cleanup()
+        Logger.debug{"Cleaning up texture by accessing function"}
 
         // Delete the VAO
-        Logger.debug { "Deleting VAO" }
+        Logger.debug{"Deleting VAO"}
         glBindVertexArray(0)
         glDeleteVertexArrays(vaoId)
     }

@@ -6,7 +6,7 @@ import org.lwjgl.opengl.GL30.*
 import org.tinylog.Logger
 import tk.ff0044.lwkglTutorial.engine.GameItem
 import tk.ff0044.lwkglTutorial.engine.Window
-import tk.ff0044.lwkglTutorial.engine.common.Utils
+import tk.ff0044.lwkglTutorial.engine.graph.Utils
 import tk.ff0044.lwkglTutorial.engine.graph.ShaderProgram
 import tk.ff0044.lwkglTutorial.engine.graph.Transformation
 
@@ -30,14 +30,16 @@ class Renderer {
         Logger.debug{"Linking shaders"}
         shaderProgram.link()
 
-        Logger.debug{"Creating uniform at projection and world matrix"}
+        Logger.debug{"Creating uniform at projection, world matrix"}
         shaderProgram.createUniform("projectionMatrix")
         shaderProgram.createUniform("worldMatrix")
+        Logger.debug{"Creating uniform at texture_sampler"}
+        shaderProgram.createUniform("texture_sampler")
         window.setClearColor(0.0f, 0.0f, 0.0f, 0.0f)
-        Logger.debug{"Successfully set the clear colour"}
+        Logger.debug{"Successfully set the clear colour to black"}
     }
 
-    private fun clear() {
+    fun clear() {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT)
     }
 
@@ -58,6 +60,7 @@ class Renderer {
         )
         shaderProgram.setUniform("projectionMatrix", projectionMatrix)
 
+        shaderProgram.setUniform("texture_sampler", 0)
 
         // Render each gameItem
         for (gameItem in gameItems) {
