@@ -27,8 +27,8 @@ class Transformation {
     }
 
     fun getViewMatrix(camera: Camera) : Matrix4f {
-        val cameraPos = camera.getPosition()
-        val rotation = camera.getRotation()
+        val cameraPos = camera.position
+        val rotation = camera.rotation
 
         viewMatrix.identity()
         // First do the rotation so camera rotates over its position

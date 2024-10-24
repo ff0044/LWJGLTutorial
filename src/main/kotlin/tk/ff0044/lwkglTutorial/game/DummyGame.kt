@@ -11,10 +11,9 @@ import tk.ff0044.lwkglTutorial.engine.graph.Camera
 import tk.ff0044.lwkglTutorial.engine.graph.Mesh
 import tk.ff0044.lwkglTutorial.engine.graph.Texture
 
-
 class DummyGame : IGameLogic {
-    val MOUSE_SENSITIVITY: Float = 0.2f
-    val CAMERA_POS_STEP: Float = 0.05f
+    private val MOUSE_SENSITIVITY: Float = 0.2f
+    private val CAMERA_POS_STEP: Float = 0.05f
 
 
     private var cameraInc : Vector3f = Vector3f()
@@ -144,34 +143,37 @@ class DummyGame : IGameLogic {
     }
 
     override fun input(window: Window, mouseInput: MouseInput) {
-        cameraInc.set(0f, 0f, 0f);
+        cameraInc.set(0f, 0f, 0f)
         if (window.isKeyPressed(GLFW_KEY_W)) {
-            cameraInc.z = -1f;
+            cameraInc.z = -1f
         } else if (window.isKeyPressed(GLFW_KEY_S)) {
-            cameraInc.z = 1f;
+            cameraInc.z = 1f
         }
         if (window.isKeyPressed(GLFW_KEY_A)) {
-            cameraInc.x = -1f;
+            cameraInc.x = -1f
         } else if (window.isKeyPressed(GLFW_KEY_D)) {
-            cameraInc.x = 1f;
+            cameraInc.x = 1f
         }
-        if (window.isKeyPressed(GLFW_KEY_Z)) {
-            cameraInc.y = -1f;
-        } else if (window.isKeyPressed(GLFW_KEY_X)) {
-            cameraInc.y = 1f;
+        if (window.isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
+            cameraInc.y = -1f
+        } else if (window.isKeyPressed(GLFW_KEY_SPACE)) {
+            cameraInc.y = 1f
         }
     }
 
     override fun update(interval: Float, mouseInput: MouseInput) {
         camera.movePosition(cameraInc.x * CAMERA_POS_STEP, cameraInc.y * CAMERA_POS_STEP, cameraInc.z * CAMERA_POS_STEP)
-        if (mouseInput.isRightButtonPressed()) {
-            val rotVec = mouseInput.getDisplVec()
-            camera.moveRotation(rotVec.x * MOUSE_SENSITIVITY, rotVec.y * MOUSE_SENSITIVITY, 0f)
-        }
+
+        val rotVec = mouseInput.displVec
+        camera.moveRotation(rotVec.x * MOUSE_SENSITIVITY, rotVec.y * MOUSE_SENSITIVITY, 0f)
+
+//        if (mouseInput.isInWindow()) {
+//            Logger.debug{"Mouse is in window"}
+//        }
     }
 
     override fun render(window: Window) {
-        renderer.render(window!!, gameItems)
+        renderer.render(window, camera, gameItems)
     }
 
     override fun cleanup() {

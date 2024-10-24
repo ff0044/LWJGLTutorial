@@ -11,8 +11,8 @@ open class GameEngine(
     private var gameLogic: IGameLogic
 ) : Runnable {
 
-    val TARGET_FPS : Int = 75;
-    val TARGET_UPS : Int = 30;
+    private val TARGET_FPS : Int = 75;
+    private val TARGET_UPS : Int = 30;
 
     private val window: Window
     private val timer: Timer
@@ -27,8 +27,8 @@ open class GameEngine(
                     "vSync is $vSync"
             }
             window = Window(windowTitle, width, height, vSync)
-            timer = Timer()
             mouseInput = MouseInput()
+            timer = Timer()
         } catch (e: Exception) {
             throw Exception("Initialisation failed", e)
         }
@@ -46,6 +46,8 @@ open class GameEngine(
         }
     }
 
+
+
     @Throws(Exception::class)
     protected fun init() {
         Logger.debug{"Window is initialised"}
@@ -61,13 +63,12 @@ open class GameEngine(
     fun gameLoop() {
         var elapsedTime: Float
         var accumulator = 0f
-        val interval = 1f / TARGET_UPS
+        val interval: Float = 1f / TARGET_UPS
 
-        val running = true
+        var running = true
         while (running && !window.windowShouldClose()!!) {
             elapsedTime = timer.getElapsedTime()
-            accumulator += elapsedTime
-
+            accumulator +=elapsedTime
             input()
 
             while (accumulator >= interval) {
@@ -83,34 +84,34 @@ open class GameEngine(
         }
     }
 
+    private fun render() {
+        gameLogic.render(window)
+        window.update()
+    }
+
+    private fun input() {
+        mouseInput.input(window)
+        gameLogic.input(window, mouseInput)
+    }
+
+    private fun update(interval: Float) {
+        gameLogic.update(interval, mouseInput)
+    }
+
     private fun sync() {
         val loopSlot = 1f / TARGET_FPS
         val endTime = timer.getLastLoopTime() + loopSlot
         while (timer.getTime() < endTime) {
             try {
                 Thread.sleep(1)
-            } catch (ie: InterruptedException) {
+            } catch (e: InterruptedException) {
+                Logger.error { "Interrupted exception" }
             }
         }
     }
 
-    fun input() {
-        mouseInput.input(window)
-        gameLogic.input(window, mouseInput)
-    }
-
-    fun update(interval: Float) {
-        gameLogic.update(interval, mouseInput)
-    }
-
-    fun render() {
-        gameLogic.render(window)
-        window.update()
-    }
-
-    fun cleanup() {
+    private fun cleanup() {
         Logger.debug{"gameLogic is now being cleaned up"}
         gameLogic.cleanup()
     }
-
 }

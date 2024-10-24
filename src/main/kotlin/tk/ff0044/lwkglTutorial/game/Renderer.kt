@@ -17,7 +17,6 @@ class Renderer {
     val FOV: Float = Math.toRadians(60.0).toFloat()
     val Z_NEAR: Float = 0.01f
     val Z_FAR: Float = 1000f
-    val camera = Camera()
 
     private var transformation: Transformation = Transformation()
     lateinit private var shaderProgram: ShaderProgram
@@ -41,7 +40,7 @@ class Renderer {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT)
     }
 
-    fun render(window: Window, gameItems: Array<GameItem>) {
+    fun render(window: Window, camera : Camera, gameItems: Array<GameItem>) {
         clear()
 
         if (window.isResized()) {

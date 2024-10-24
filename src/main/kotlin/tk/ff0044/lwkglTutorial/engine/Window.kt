@@ -10,7 +10,7 @@ import org.tinylog.Logger
 
 
 class Window(private val title: String?, private var width: Int, private var height: Int, private var vSync: Boolean) {
-    private var windowHandle: Long? = null
+    var windowHandle: Long? = null
     private var resized = false
 
     fun init() {
@@ -37,6 +37,8 @@ class Window(private val title: String?, private var width: Int, private var hei
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
         Logger.debug { "GLFW_OPENGL_FORWARD_COMPAT is true" }
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE)
+        Logger.debug{"GLFW_DOUBLEBUFFER is enabled"}
+        glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE)
 
         // Create the window
         Logger.debug { "Creating GLFW Window" }
@@ -96,7 +98,7 @@ class Window(private val title: String?, private var width: Int, private var hei
     }
 
     fun isKeyPressed(keyCode: Int): Boolean {
-        return windowHandle?.let { glfwGetKey(it, keyCode) } == GLFW_PRESS
+        return glfwGetKey(windowHandle!!, keyCode) == GLFW_PRESS
     }
 
     fun windowShouldClose(): Boolean? {
@@ -132,7 +134,7 @@ class Window(private val title: String?, private var width: Int, private var hei
     }
 
     fun update() {
-        windowHandle?.let { glfwSwapBuffers(it) }
+        glfwSwapBuffers(windowHandle!!)
         glfwPollEvents()
     }
 

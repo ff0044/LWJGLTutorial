@@ -1,7 +1,7 @@
 package tk.ff0044.lwkglTutorial.engine
 
 class Timer {
-    private var lastLoopTime : Double = 0.0
+    private var lastLoopTime = 0.0
 
     fun init() {
         lastLoopTime = getTime()
