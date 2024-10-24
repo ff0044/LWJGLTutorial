@@ -77,7 +77,7 @@ open class GameEngine(
 
             render()
 
-            if (window.isvSync() == false) {
+            if (!window.isvSync()) {
                 sync()
             }
         }
@@ -95,6 +95,7 @@ open class GameEngine(
     }
 
     fun input() {
+        mouseInput.input(window)
         gameLogic.input(window, mouseInput)
     }
 

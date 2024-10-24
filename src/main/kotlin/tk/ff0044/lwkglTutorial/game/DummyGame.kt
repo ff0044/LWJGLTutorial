@@ -13,10 +13,10 @@ import tk.ff0044.lwkglTutorial.engine.graph.Texture
 
 
 class DummyGame : IGameLogic {
-    private var displxInc = 0
-    private var displyInc = 0
-    private var displzInc = 0
-    private var scaleInc = 0
+    val MOUSE_SENSITIVITY: Float = 0.2f
+    val CAMERA_POS_STEP: Float = 0.05f
+
+
     private var cameraInc : Vector3f = Vector3f()
     private var camera : Camera = Camera()
     private val renderer = Renderer()
@@ -163,7 +163,11 @@ class DummyGame : IGameLogic {
     }
 
     override fun update(interval: Float, mouseInput: MouseInput) {
-
+        camera.movePosition(cameraInc.x * CAMERA_POS_STEP, cameraInc.y * CAMERA_POS_STEP, cameraInc.z * CAMERA_POS_STEP)
+        if (mouseInput.isRightButtonPressed()) {
+            val rotVec = mouseInput.getDisplVec()
+            camera.moveRotation(rotVec.x * MOUSE_SENSITIVITY, rotVec.y * MOUSE_SENSITIVITY, 0f)
+        }
     }
 
     override fun render(window: Window) {
