@@ -16,6 +16,7 @@ open class GameEngine(
 
     private val window: Window
     private val timer: Timer
+    private val mouseInput : MouseInput
 
     init {
         Logger.debug{"Initialising Game Engine"}
@@ -26,8 +27,8 @@ open class GameEngine(
                     "vSync is $vSync"
             }
             window = Window(windowTitle, width, height, vSync)
-            Logger.debug{"Timer is initialised"}
             timer = Timer()
+            mouseInput = MouseInput()
         } catch (e: Exception) {
             throw Exception("Initialisation failed", e)
         }
@@ -51,6 +52,8 @@ open class GameEngine(
         window.init();
         Logger.debug{"Timer is initialised"}
         timer.init();
+        Logger.debug{"Mouse Input is initialised"}
+        mouseInput.init(window)
         Logger.debug{"Game Logic is initialised"}
         gameLogic.init(window);
     }
@@ -92,11 +95,11 @@ open class GameEngine(
     }
 
     fun input() {
-        gameLogic.input(window)
+        gameLogic.input(window, mouseInput)
     }
 
     fun update(interval: Float) {
-        gameLogic.update(interval)
+        gameLogic.update(interval, mouseInput)
     }
 
     fun render() {

@@ -6,6 +6,7 @@ import org.lwjgl.opengl.GL30.*
 import org.tinylog.Logger
 import tk.ff0044.lwkglTutorial.engine.GameItem
 import tk.ff0044.lwkglTutorial.engine.Window
+import tk.ff0044.lwkglTutorial.engine.graph.Camera
 import tk.ff0044.lwkglTutorial.engine.graph.Utils
 import tk.ff0044.lwkglTutorial.engine.graph.ShaderProgram
 import tk.ff0044.lwkglTutorial.engine.graph.Transformation
@@ -16,6 +17,7 @@ class Renderer {
     val FOV: Float = Math.toRadians(60.0).toFloat()
     val Z_NEAR: Float = 0.01f
     val Z_FAR: Float = 1000f
+    val camera = Camera()
 
     private var transformation: Transformation = Transformation()
     lateinit private var shaderProgram: ShaderProgram
@@ -30,13 +32,9 @@ class Renderer {
         Logger.debug{"Linking shaders"}
         shaderProgram.link()
 
-        Logger.debug{"Creating uniform at projection, world matrix"}
-        shaderProgram.createUniform("projectionMatrix")
-        shaderProgram.createUniform("worldMatrix")
-        Logger.debug{"Creating uniform at texture_sampler"}
-        shaderProgram.createUniform("texture_sampler")
-        window.setClearColor(0.0f, 0.0f, 0.0f, 0.0f)
-        Logger.debug{"Successfully set the clear colour to black"}
+        shaderProgram.createUniform("projectionMatrix");
+        shaderProgram.createUniform("modelViewMatrix");
+        shaderProgram.createUniform("texture_sampler");
     }
 
     fun clear() {
@@ -53,26 +51,20 @@ class Renderer {
 
         shaderProgram.bind()
 
-        // Update projection Matrix
-        val projectionMatrix = transformation.getProjectionMatrix(
-            FOV,
-            window.getWidth().toFloat(), window.getHeight().toFloat(), Z_NEAR, Z_FAR
-        )
+        // Update projection matrix
+        val projectionMatrix = transformation.getProjectionMatrix(FOV, window.getWidth().toFloat(), window.getHeight().toFloat(), Z_NEAR, Z_FAR)
         shaderProgram.setUniform("projectionMatrix", projectionMatrix)
 
-        shaderProgram.setUniform("texture_sampler", 0)
+        // Update view matrix
+        val viewMatrix = transformation.getViewMatrix(camera)
 
-        // Render each gameItem
-        for (gameItem in gameItems) {
-            // Set world matrix for this item
-            val worldMatrix =
-                transformation.getWorldMatrix(
-                    gameItem.position,
-                    gameItem.rotation,
-                    gameItem.scale
-                )
-            shaderProgram.setUniform("worldMatrix", worldMatrix)
-            // Render the mes for this game item
+        shaderProgram.setUniform("texture_sampler", 0)
+        // Render each game item
+        for (gameItem : GameItem in gameItems) {
+            // Set model view matrix for this item
+            val modelViewMatrix = transformation.getModelViewMatrix(gameItem, viewMatrix)
+            shaderProgram.setUniform("modelViewMatrix", modelViewMatrix)
+            // Render the mesh for the game item
             gameItem.mesh.render()
         }
 

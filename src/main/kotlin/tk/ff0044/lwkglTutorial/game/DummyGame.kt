@@ -1,10 +1,13 @@
 package tk.ff0044.lwkglTutorial.game
 
+import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW.*
 import org.tinylog.Logger
 import tk.ff0044.lwkglTutorial.engine.GameItem
 import tk.ff0044.lwkglTutorial.engine.IGameLogic
+import tk.ff0044.lwkglTutorial.engine.MouseInput
 import tk.ff0044.lwkglTutorial.engine.Window
+import tk.ff0044.lwkglTutorial.engine.graph.Camera
 import tk.ff0044.lwkglTutorial.engine.graph.Mesh
 import tk.ff0044.lwkglTutorial.engine.graph.Texture
 
@@ -14,6 +17,8 @@ class DummyGame : IGameLogic {
     private var displyInc = 0
     private var displzInc = 0
     private var scaleInc = 0
+    private var cameraInc : Vector3f = Vector3f()
+    private var camera : Camera = Camera()
     private val renderer = Renderer()
     private lateinit var gameItems: Array<GameItem>
 
@@ -123,61 +128,42 @@ class DummyGame : IGameLogic {
 
         val texture = Texture("textures/grassblock.png")
         val mesh = Mesh(positions, textCoords, indices, texture)
-        val gameItem = GameItem(mesh)
-        gameItem.setPosition(0f, 0f, -2f)
-        gameItems = arrayOf(gameItem)
-        Logger.debug { "Mesh created and game item initialized" }
+        val gameItem1 = GameItem(mesh)
+        gameItem1.scale = 0.5f
+        gameItem1.setPosition(0f, 0f, -2f)
+        val gameItem2 = GameItem(mesh)
+        gameItem2.scale = 0.5f
+        gameItem2.setPosition(0.5f, 0.5f, -2f)
+        val gameItem3 = GameItem(mesh)
+        gameItem3.scale = 0.5f
+        gameItem3.setPosition(0f, 0f, -2.5f)
+        val gameItem4 = GameItem(mesh)
+        gameItem4.scale = 0.5f
+        gameItem4.setPosition(0.5f, 0f, -2.5f)
+        gameItems = arrayOf(gameItem1, gameItem2, gameItem3, gameItem4)
     }
 
-    override fun input(window: Window) {
-        displyInc = 0
-        displxInc = 0
-        displzInc = 0
-        scaleInc = 0
-        if (window.isKeyPressed(GLFW_KEY_UP)) {
-            displyInc = 1
-        } else if (window.isKeyPressed(GLFW_KEY_DOWN)) {
-            displyInc = -1
-        } else if (window.isKeyPressed(GLFW_KEY_LEFT)) {
-            displxInc = -1
-        } else if (window.isKeyPressed(GLFW_KEY_RIGHT)) {
-            displxInc = 1
-        } else if (window.isKeyPressed(GLFW_KEY_A)) {
-            displzInc = -1
-        } else if (window.isKeyPressed(GLFW_KEY_Q)) {
-            displzInc = 1
-        } else if (window.isKeyPressed(GLFW_KEY_Z)) {
-            scaleInc = -1
+    override fun input(window: Window, mouseInput: MouseInput) {
+        cameraInc.set(0f, 0f, 0f);
+        if (window.isKeyPressed(GLFW_KEY_W)) {
+            cameraInc.z = -1f;
+        } else if (window.isKeyPressed(GLFW_KEY_S)) {
+            cameraInc.z = 1f;
+        }
+        if (window.isKeyPressed(GLFW_KEY_A)) {
+            cameraInc.x = -1f;
+        } else if (window.isKeyPressed(GLFW_KEY_D)) {
+            cameraInc.x = 1f;
+        }
+        if (window.isKeyPressed(GLFW_KEY_Z)) {
+            cameraInc.y = -1f;
         } else if (window.isKeyPressed(GLFW_KEY_X)) {
-            scaleInc = 1
+            cameraInc.y = 1f;
         }
     }
 
-    override fun update(interval: Float) {
-        for (gameItem in gameItems) {
-            // Update position
-            val itemPos = gameItem.position
-            val posx = itemPos.x + displxInc * 0.01f
-            val posy = itemPos.y + displyInc * 0.01f
-            val posz = itemPos.z + displzInc * 0.01f
-            gameItem.setPosition(posx, posy, posz)
+    override fun update(interval: Float, mouseInput: MouseInput) {
 
-
-            // Update scale
-            var scale = gameItem.scale
-            scale += scaleInc * 0.05f
-            if (scale < 0) {
-                scale = 0f
-            }
-            gameItem.scale = scale
-
-            // Update rotation angle
-            var rotation = gameItem.rotation.x + 1.5f
-            if (rotation > 360) {
-                rotation = 0f
-            }
-            gameItem.setRotation(rotation, rotation, rotation)
-        }
     }
 
     override fun render(window: Window) {

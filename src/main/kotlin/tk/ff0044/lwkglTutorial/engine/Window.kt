@@ -135,4 +135,8 @@ class Window(private val title: String?, private var width: Int, private var hei
         windowHandle?.let { glfwSwapBuffers(it) }
         glfwPollEvents()
     }
+
+    fun getWindowHandle(): Long {
+        return windowHandle!!
+    }
 }
